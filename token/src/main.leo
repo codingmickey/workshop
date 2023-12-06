@@ -18,6 +18,10 @@ program token.aleo {
         // Mint the tokens publicly by invoking the computation on-chain.
         return then finalize(receiver, amount);
     }
+      transition burn_public(public amount: u64) {
+        // Burn the tokens publicly by invoking the computation on-chain.
+        return then finalize(self.caller, amount);
+    }
 
     finalize mint_public(public receiver: address, public amount: u64) {
         // Increments `account[receiver]` by `amount`.
@@ -27,6 +31,12 @@ program token.aleo {
         Mapping::set(account, receiver, receiver_amount + amount);
     }
 
+  finalize burn_public(public owner: address, public amount: u64) {
+        // Decrements `account[owner]` by `amount`.
+        // If `account[owner]` does not exist or if `account[owner] - amount` underflows, `burn_public` is reverted.
+        let owner_amount: u64 = Mapping::get_or_use(account, owner, 0u64);
+        Mapping::set(account, owner, owner_amount - amount);
+    }
     // The function `mint_private` initializes a new record with the specified amount of tokens for the receiver.
     transition mint_private(receiver: address, amount: u64) -> token {
         return token {
